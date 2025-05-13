@@ -1,0 +1,97 @@
+Start in the home directory.
+
+student@bchd:~$ cd
+
+Create a project directory. This sets up a folder for your Java program.
+
+student@bchd:~$ mkdir -p ~/mycode/java-debugging-lab
+
+Navigate into the project directory. This moves you into the java-debugging-lab folder.
+
+student@bchd:~$ cd ~/mycode/java-debugging-lab
+
+Create the main Java file. This sets up DebugDemo.java for your program.
+
+student@bchd:~/mycode/java-debugging-lab$ vim DebugDemo.java
+
+Add DebugDemo program code.
+
+public class DebugDemo {
+    public static void main(String[] args) {
+        System.out.println("Start of DebugDemo");
+        int sum = 0;
+        for (int i = 1; i <= 5; i++) {
+            sum += i;
+            System.out.println("i = " + i + ", sum = " + sum); // line 7
+        }
+        System.out.println("Final sum = " + sum);
+    }
+}
+Save and exit: Press Esc, then type :wq and hit Enter.
+
+Before debugging, we need to compile the Java source into bytecode. We’ll include debug symbols in the compiled class so the debugger has access to line numbers and variable names. In the terminal, run:
+
+student@bchd:~/mycode/java-debugging-lab$ javac -g DebugDemo.java
+
+The -g option tells javac to generate all debugging information (including local variables) in the *.class file. By default, without -g, javac only includes line numbers and source file info, but omits local variable details. After running this command, if there are no errors, a file DebugDemo.class is produced.
+
+Now we will launch the Java Debugger on our program. The most straightforward way is to let jdb launch the JVM with our program, much like running it via java. Use the jdb command followed by the main class name (without .class or .java)
+
+student@bchd:~/mycode/java-debugging-lab$ jdb DebugDemo
+
+This tells jdb to start a new Java Virtual Machine for DebugDemo under the debugger. You should see an output that changes the prompt to a >
+
+A breakpoint is a marker where the debugger will pause program execution so you can inspect state. We will set a breakpoint in our code before the loop prints each iteration. In our DebugDemo code, the line inside the loop that prints the values is the one we want to break at (to examine variables i and sum during the loop). Let’s assume that corresponds to line 7 in the code (counting from the top of the file, where the first line is public class DebugDemo).
+
+> stop at DebugDemo:7
+
+The message deferring breakpoint appears because the class was loaded but not yet running; jdb will officially set the breakpoint once the debugger starts execution of that class. Now start the program
+
+> run
+
+The program will start and run until it hits our breakpoint. You should see output indicating the VM started and the breakpoint was reached. With execution stopped at the breakpoint, we can examine the values of variables in the current context (inside main). Two useful jdb commands for this are print and locals. print <variable> displays the value of the given variable or expression. Whereas locals displays all local variables in the current stack frame (with their values)
+
+main[1] print i
+
+We expect i to be 1 at this point. Try displaying sum, which also should be 1.
+
+main[1] print sum
+
+We can confirm all locals at once with locals
+
+main[1] locals
+
+The cont (continue) command tells the debugger to resume normal execution until it hits the next breakpoint or the program ends. Since we have a breakpoint set at line 7, using cont now will let the program run until it reaches line 7 again (the next loop iteration). In other words, cont will jump to the next iteration’s breakpoint pause, or finish if no more breakpoints.
+
+main[1] cont
+
+Confirm all locals have changed, as we've stepped through the loop again, and returned back to line 7
+
+main[1] locals
+
+Run cont again.
+
+main[1] cont
+
+One again, check out the local vars
+
+main[1] locals
+
+The test will eventually end. Before then, try next, which will execute the current line but step over method calls, treating them as a single step (the method is executed without debugging inside it).
+
+main[1] next
+
+Now try step, which will execute the current line and step into any method calls on that line (i.e., take the debugger inside the method)
+
+main[1] step
+
+We could keep using cont, next, or step until the program ends, or just exit
+
+main[1] exit
+
+You should be back at the command line.
+
+Great job! That's it for this lab.
+
+Conclusion
+In this lab, you successfully set up a Java development environment and used jdb to debug a program with breakpoints, and step-through debugging.
